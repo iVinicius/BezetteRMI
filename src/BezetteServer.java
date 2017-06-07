@@ -19,7 +19,7 @@ public class BezetteServer {
 			System.out.println("BezetteServer RMI registry already running.");			
 		}
 		try {
-			Naming.rebind ("Bezette", new Bezette());
+			Naming.rebind ("Bezette", new BezetteMatchManager());
 			System.out.println ("BezetteServer is ready.");
 		} catch (Exception e) {
 			System.out.println ("BezetteServer failed:");
