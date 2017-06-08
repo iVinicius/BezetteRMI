@@ -12,11 +12,8 @@ public class BezetteMatchManager extends UnicastRemoteObject implements BezetteI
 	
 	private ArrayList<Bezette> matchList;
 	
-	private ArrayList<Player> userList;
-	
 	public BezetteMatchManager() throws RemoteException{
 		matchList = new ArrayList<>();
-		userList = new ArrayList<>();
 		
 		matchList.add(new Bezette());
 	}
@@ -27,7 +24,6 @@ public class BezetteMatchManager extends UnicastRemoteObject implements BezetteI
 		newPlayer.setId(Player.getNextPlayerSeqNum());
 		newPlayer.setName(nomeDoJogador);
 		
-		userList.add(newPlayer);
 		registerPlayerInAMatch(newPlayer);
 		
 		return newPlayer.getId();
@@ -35,26 +31,51 @@ public class BezetteMatchManager extends UnicastRemoteObject implements BezetteI
 
 	@Override
 	public int temPartida(int idUsuario) throws RemoteException {
-		// TODO Auto-generated method stub
-		return 0;
+		Bezette match = findPlayerMatch(idUsuario);
+		
+		if(match == null || !match.isReady()){
+			return 0;
+		}
+		
+		boolean isFirst = isPlayerStartPlaying(match, idUsuario);
+		
+		return isFirst ? 1 : 2;
 	}
 
 	@Override
 	public int ehMinhaVez(int idUsuario) throws RemoteException {
-		// TODO Auto-generated method stub
-		return 0;
+		Bezette match = findPlayerMatch(idUsuario);
+		
+		if(match == null){
+			return -2;
+		}
+		
+		//TODO: resto da implementação. vencedores....
+		
+		int nextToPlay = match.nextToPlay();
+		if(nextToPlay == idUsuario){
+			return 1;
+		} else{
+			return 0;
+		}
 	}
 
 	@Override
 	public String obtemTabuleiro(int idUsuario) throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		Bezette match = findPlayerMatch(idUsuario);	
+		
+		return match.toString();
 	}
 
 	@Override
 	public String obtemOponente(int idUsuario) throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		Bezette match = findPlayerMatch(idUsuario);
+		for(Player p : match.getPlayers()){
+			if(p.getId() != idUsuario){
+				return p.getName();
+			}
+		}
+		return "Você não possui oponentes ainda.";
 	}
 
 	@Override
@@ -67,6 +88,16 @@ public class BezetteMatchManager extends UnicastRemoteObject implements BezetteI
 	public int encerraPartida(int idUsuario) throws RemoteException {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+	
+	private Bezette findPlayerMatch(int playerid){
+		for(Bezette bzt : matchList){
+			for(Player p : bzt.getPlayers()){
+				if(p.getId() == playerid) return bzt;
+			}
+		}
+		
+		return null;
 	}
 
 	private void registerPlayerInAMatch(Player player){
@@ -83,5 +114,9 @@ public class BezetteMatchManager extends UnicastRemoteObject implements BezetteI
 		Bezette aux = new Bezette();
 		matchList.add(aux);
 		return aux;
+	}
+	
+	private boolean isPlayerStartPlaying(Bezette match, int playerId){
+		return match.nextToPlay() == playerId;
 	}
 }

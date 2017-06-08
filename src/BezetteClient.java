@@ -48,6 +48,9 @@ public class BezetteClient {
 			case "1":
 				this.case1();
 				break;
+			case "2":
+				this.case2();
+				break;
 			default:
 				System.out.println("Parametro inválido. Tente novamente.");
 				break;
@@ -70,11 +73,30 @@ public class BezetteClient {
 		clientRegistered = true;
 	}
 	
+	private void case2() throws RemoteException{
+		int result = bezette.temPartida(idPlayer);
+		switch(result){
+		case 0:
+			System.out.println(" Ainda não há partidas.");
+			break;
+		case 1:
+			System.out.println(" Você já está em uma partida e começa jogando. ");
+			break;
+		case 2:
+			System.out.println(" Você já está em uma partida mas não é o primeiro a jogar. ");
+			break;
+		default:
+			System.out.println(" Ocorreu um problema na opção \"tem partida\". ");
+			break;
+		}
+	}
+	
 	private void printMenu(){
 		//clearConsole();
-		System.out.println("## Bezette Menu - Digite o número da operação desejada ##");
+		System.out.println("## Bezette Menu - Digite o número da operação desejada : ## ID: " + idPlayer);
 		System.out.println(" 0 : Fechar jogo. ");
 		System.out.println(" 1 : Registrar jogador. ");
+		System.out.println(" 2 : Tem partida? ");
 	}
 	
 	private void clearConsole(){
