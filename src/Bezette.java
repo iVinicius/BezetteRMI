@@ -5,7 +5,7 @@ import java.util.Random;
  * @author Vinicius
  *
  */
-public class Bezette {
+public class Bezette{
 	
 	private Player player1;
 	
@@ -19,10 +19,42 @@ public class Bezette {
 	
 	private int nextToPlay;
 	
+	private boolean p1Quit;
+	
+	private boolean p2Quit;
+	
 	public Bezette(){
 		this.ringsP1 = 12;
 		this.ringsP2 = 12;
 		this.hasteTotal = 0;
+		this.p1Quit = false;
+		this.p2Quit = false;
+	}
+	
+	public void handleDesistance(int idPlayer){
+		boolean isP1 = false;
+		if(idPlayer == player1.getId()){
+			isP1 = true;
+		}
+		
+		if(isP1){
+			p1Quit = true;
+		} else{
+			p2Quit = true;
+		}
+	}
+	
+	public int hasVictor(){
+		if(ringsP1 == 0 || p2Quit){
+			return player1.getId();
+		} else if(ringsP2 == 0 || p1Quit){
+			return player2.getId();
+		}
+		return -1;
+	}
+	
+	public boolean victorDueToWO(){
+		return p1Quit || p2Quit;
 	}
 	
 	public boolean isReady(){
@@ -44,8 +76,8 @@ public class Bezette {
 	
 	public ArrayList<Player> getPlayers(){
 		ArrayList<Player> list = new ArrayList<>();
-		list.add(player1);
-		list.add(player2);
+		if(player1 != null) list.add(player1);
+		if(player2 != null) list.add(player2);
 		return list;
 	}
 	
@@ -68,8 +100,16 @@ public class Bezette {
 		
 		ArrayList<Integer> dices = this.randomDices();
 		
+		this.handlePlay(dices, playerid);
 		
-		return null;
+		this.changeTurn();
+		
+		String aux = "";
+		for(Integer inte : dices){
+			aux += inte + ",";
+		}
+		
+		return aux;
 	}
 	
 	private void handlePlay(ArrayList<Integer> dices, int playerId){
@@ -130,5 +170,13 @@ public class Bezette {
 		}
 		
 		return dices;
+	}
+	
+	private void changeTurn(){
+		if(nextToPlay == player1.getId()){
+			nextToPlay = player2.getId();
+		} else{
+			nextToPlay = player1.getId();
+		}
 	}
 }

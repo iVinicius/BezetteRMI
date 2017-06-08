@@ -1,6 +1,7 @@
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.concurrent.Semaphore;
 
 /**
  * @author Vinicius
@@ -12,19 +13,30 @@ public class BezetteMatchManager extends UnicastRemoteObject implements BezetteI
 	
 	private ArrayList<Bezette> matchList;
 	
+	private Semaphore registrySemaphore;
+	
+	private Semaphore playSemaphore;
+	
 	public BezetteMatchManager() throws RemoteException{
-		matchList = new ArrayList<>();
+		matchList = new ArrayList<>(50);
+		
+		registrySemaphore = new Semaphore(1, true);
+		
+		playSemaphore = new Semaphore(1, true);
 		
 		matchList.add(new Bezette());
 	}
 
 	@Override
 	public int registraJogador(String nomeDoJogador) throws RemoteException {
+		registrySemaphore.acquireUninterruptibly();
 		Player newPlayer = new Player();
 		newPlayer.setId(Player.getNextPlayerSeqNum());
 		newPlayer.setName(nomeDoJogador);
 		
 		registerPlayerInAMatch(newPlayer);
+		
+		registrySemaphore.release();
 		
 		return newPlayer.getId();
 	}
@@ -47,11 +59,27 @@ public class BezetteMatchManager extends UnicastRemoteObject implements BezetteI
 		Bezette match = findPlayerMatch(idUsuario);
 		
 		if(match == null){
-			return -2;
+			return -1;
 		}
 		
-		//TODO: resto da implementação. vencedores....
-		
+		int victor = match.hasVictor();
+		if(victor > 0){
+			boolean wo = match.victorDueToWO();
+			if(idUsuario == victor){
+				if(wo){
+					return 5;
+				}
+				return 2;
+			} else{
+				if(wo){
+					return 6;
+				}
+				return 3;
+			}
+		}
+		if(!match.isReady()){
+			return -2;
+		}
 		int nextToPlay = match.nextToPlay();
 		if(nextToPlay == idUsuario){
 			return 1;
@@ -80,13 +108,34 @@ public class BezetteMatchManager extends UnicastRemoteObject implements BezetteI
 
 	@Override
 	public String jogaDados(int idUsuario) throws RemoteException {
-		// TODO Auto-generated method stub
+		playSemaphore.acquireUninterruptibly();
+		
+		Bezette match = findPlayerMatch(idUsuario);
+		if(match == null || !match.isReady()){
+			playSemaphore.release();
+			return null;
+		}
+		
+		String result = match.play(idUsuario);
+		if(result != null){
+			playSemaphore.release();
+			return result;
+		}
+		
+		playSemaphore.release();
 		return null;
 	}
 
 	@Override
 	public int encerraPartida(int idUsuario) throws RemoteException {
-		// TODO Auto-generated method stub
+		Bezette match = findPlayerMatch(idUsuario);
+		
+		if(match == null || !match.isReady()){
+			return -1;
+		}
+		
+		match.handleDesistance(idUsuario);
+		
 		return 0;
 	}
 	
