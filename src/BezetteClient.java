@@ -143,7 +143,10 @@ public class BezetteClient {
 		
 		if(result == null){
 			System.out.println("Ocorreu um erro. Ou você não está em uma partida, ou não é sua vez.");
-		} else{
+		} else if(result.equalsIgnoreCase("")){
+			System.out.println("A partida já terminou. Utilize a opcao 3 para saber o status.");
+		}
+		else{
 			System.out.println(result);
 		}	
 	}

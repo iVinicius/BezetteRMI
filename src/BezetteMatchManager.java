@@ -116,6 +116,10 @@ public class BezetteMatchManager extends UnicastRemoteObject implements BezetteI
 			return null;
 		}
 		
+		if(match.hasVictor() > 0){
+			return "";
+		}
+		
 		String result = match.play(idUsuario);
 		if(result != null){
 			playSemaphore.release();
